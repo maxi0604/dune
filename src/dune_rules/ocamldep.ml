@@ -15,7 +15,7 @@ end
 open Modules_data
 
 let parse_module_names ~(unit : Module.t) ~modules words =
-  List.filter_map words ~f:(fun m ->
+  List.concat_map words ~f:(fun m ->
       let m = Module_name.of_string m in
       Modules.find_dep modules ~of_:unit m)
 
@@ -44,30 +44,29 @@ let interpret_deps md ~unit deps =
   let modules = md.modules in
   let deps = parse_module_names ~unit ~modules deps in
   if Option.is_none md.stdlib then
-    Modules.main_module_name modules
-    |> Option.iter ~f:(fun (main_module_name : Module_name.t) ->
-           if
-             Module_name.Infix.(Module.name unit <> main_module_name)
-             && (not (Module.kind unit = Alias))
-             && List.exists deps ~f:(fun x -> Module.name x = main_module_name)
-           then
-             User_error.raise
-               [ Pp.textf "Module %s in directory %s depends on %s."
-                   (Module_name.to_string (Module.name unit))
-                   (Path.to_string_maybe_quoted (Path.build dir))
-                   (Module_name.to_string main_module_name)
-               ; Pp.textf "This doesn't make sense to me."
-               ; Pp.nop
-               ; Pp.textf
-                   "%s is the main module of the library and is the only \
-                    module exposed outside of the library. Consequently, it \
-                    should be the one depending on all the other modules in \
-                    the library."
-                   (Module_name.to_string main_module_name)
-               ]);
-  match Modules.alias_for modules unit with
-  | None -> deps
-  | Some m -> m :: deps
+    Modules.group_interfaces modules unit
+    |> List.find_map ~f:(fun interface ->
+           Option.some_if
+             (List.exists deps ~f:(fun dep ->
+                  Module_name.Unique.equal
+                    (Module.obj_name interface)
+                    (Module.obj_name dep)))
+             interface)
+    |> Option.iter ~f:(fun invalid ->
+           User_error.raise
+             [ Pp.textf "Module %s in directory %s depends on %s."
+                 (Module_name.to_string (Module.name unit))
+                 (Path.to_string_maybe_quoted (Path.build dir))
+                 (Module_name.to_string (Module.name invalid))
+             ; Pp.textf "This doesn't make sense to me."
+             ; Pp.nop
+             ; Pp.textf
+                 "%s is the main module of the library and is the only module \
+                  exposed outside of the library. Consequently, it should be \
+                  the one depending on all the other modules in the library."
+                 (Module_name.to_string (Module.name invalid))
+             ]);
+  deps
 
 let deps_of
     ({ sandbox; modules; sctx; dir; obj_dir; vimpl = _; stdlib = _ } as md)
@@ -99,9 +98,10 @@ let deps_of
   let build_paths dependencies =
     let dependency_file_path m =
       let ml_kind m =
-        if Module.kind m = Alias then None
-        else if Module.has m ~ml_kind:Intf then Some Ml_kind.Intf
-        else Some Impl
+        match Module.kind m with
+        | Alias _ -> None
+        | _ ->
+          if Module.has m ~ml_kind:Intf then Some Ml_kind.Intf else Some Impl
       in
       ml_kind m
       |> Option.map ~f:(fun ml_kind ->

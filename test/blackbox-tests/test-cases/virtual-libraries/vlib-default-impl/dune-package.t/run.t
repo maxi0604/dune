@@ -7,24 +7,24 @@ Check that default implementation data is installed in the dune package file.
   (sections (lib .) (libexec .))
   (files
    (lib
-    (META
-     a.cmi
-     a.cmo
-     a.cmt
-     a.cmx
-     a.ml
-     a$ext_obj
-     a__X.cmi
-     a__X.cmti
-     default-impl/a.cmi
-     default-impl/a.cmx
-     default-impl/a__X.cmi
-     default-impl/a__X.cmt
-     default-impl/a__X.cmx
-     default-impl/a__a_default__.cmi
-     default-impl/a__a_default__.cmt
-     default-impl/a__a_default__.cmx
-     default-impl/a__a_default__.ml
+    (A.cmi
+     A.cmo
+     A.cmt
+     A.cmx
+     A.ml
+     A$ext_obj
+     A__X.cmi
+     A__X.cmti
+     META
+     default-impl/A.cmi
+     default-impl/A.cmx
+     default-impl/A__X.cmi
+     default-impl/A__X.cmt
+     default-impl/A__X.cmx
+     default-impl/A__a_default.cmi
+     default-impl/A__a_default.cmt
+     default-impl/A__a_default.cmx
+     default-impl/A__a_default.ml
      default-impl/a_default$ext_lib
      default-impl/a_default.cma
      default-impl/a_default.cmxa
@@ -42,15 +42,17 @@ Check that default implementation data is installed in the dune package file.
    (modes byte native)
    (modules
     (wrapped
-     (main_module_name A)
-     (modules
-      ((name X) (obj_name a__X) (visibility public) (kind virtual) (intf)))
-     (alias_module
+     (group
+      (alias (name A) (obj_name A) (visibility public) (kind alias) (impl))
       (name A)
-      (obj_name a)
-      (visibility public)
-      (kind alias)
-      (impl))
+      (modules
+       (module
+        (name X)
+        (obj_name A__X)
+        (path X)
+        (visibility public)
+        (kind virtual)
+        (intf))))
      (wrapped true))))
   (library
    (name a.default-impl)
@@ -68,13 +70,20 @@ Check that default implementation data is installed in the dune package file.
    (modes byte native)
    (modules
     (wrapped
-     (main_module_name A)
-     (modules
-      ((name X) (obj_name a__X) (visibility public) (kind impl_vmodule) (impl)))
-     (alias_module
-      (name A__a_default__)
-      (obj_name a__a_default__)
-      (visibility public)
-      (kind alias)
-      (impl))
+     (group
+      (alias
+       (name A__a_default)
+       (obj_name A__a_default)
+       (visibility public)
+       (kind alias)
+       (impl))
+      (name A)
+      (modules
+       (module
+        (name X)
+        (obj_name A__X)
+        (path X)
+        (visibility public)
+        (kind impl_vmodule)
+        (impl))))
      (wrapped true))))

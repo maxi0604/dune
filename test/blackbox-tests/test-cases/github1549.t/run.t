@@ -11,15 +11,15 @@ Reproduction case for #1549: too many parentheses in installed .dune files
   (files
    (lib
     (META
+     Simple_tests.cmi
+     Simple_tests.cmt
+     Simple_tests.cmx
+     Simple_tests.ml
      dune-package
      opam
      simple_tests$ext_lib
      simple_tests.cma
-     simple_tests.cmi
-     simple_tests.cmt
-     simple_tests.cmx
-     simple_tests.cmxa
-     simple_tests.ml))
+     simple_tests.cmxa))
    (libexec (simple_tests.cmxs)))
   (library
    (name dune_inline_tests)
@@ -31,13 +31,15 @@ Reproduction case for #1549: too many parentheses in installed .dune files
    (modes byte native)
    (modules
     (wrapped
-     (main_module_name Simple_tests)
-     (alias_module
-      (name Simple_tests)
-      (obj_name simple_tests)
-      (visibility public)
-      (kind alias)
-      (impl))
+     (group
+      (alias
+       (name Simple_tests)
+       (obj_name Simple_tests)
+       (path Simple_tests)
+       (visibility public)
+       (kind Alias)
+       (impl))
+      (name Simple_tests))
      (wrapped true)))
    (inline_tests.backend
     (flags :standard)
