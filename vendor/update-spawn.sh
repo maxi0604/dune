@@ -1,5 +1,6 @@
 #!/bin/bash
 
+exit
 version=e159092e9941ec3972c836927232f5680b6cb487
 
 set -e -o pipefail
