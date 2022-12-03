@@ -432,7 +432,8 @@ CAMLprim value spawn_unix(value v_env,
      For instance:
      http://git.musl-libc.org/cgit/musl/tree/src/process/posix_spawn.c
   */
-  pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &cancel_state);
+
+  // pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &cancel_state);
   sigfillset(&sigset);
   pthread_sigmask(SIG_SETMASK, &sigset, &saved_procmask);
 
