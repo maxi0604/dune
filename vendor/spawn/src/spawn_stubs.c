@@ -480,7 +480,6 @@ CAMLprim value spawn_unix(value v_env,
 
   close(result_pipe[0]);
   pthread_sigmask(SIG_SETMASK, &saved_procmask, NULL);
-  pthread_setcancelstate(cancel_state, NULL);
 
   caml_leave_blocking_section();
 
